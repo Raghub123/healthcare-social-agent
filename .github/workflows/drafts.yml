@@ -25,10 +25,13 @@ jobs:
       - name: Install dependencies
         run: pip install pillow
 
-      - name: Generate healthcare content
+      - name: Generate draft (AI with fallback)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-2.5-flash
         run: python generate.py
 
-      - name: Save generated content
+      - name: Commit draft
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
