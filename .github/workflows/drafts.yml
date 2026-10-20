@@ -9,34 +9,66 @@ on:
 permissions:
   contents: write
 
+# Prevent overlapping content-generation runs
+concurrency:
+  group: healthcare-content-generation
+  cancel-in-progress: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Get latest repository code
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
 
+      # Step 2: Configure Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # Step 3: Install required libraries
       - name: Install dependencies
-        run: pip install pillow
+        run: |
+          python -m pip install --upgrade pip
+          pip install pillow
 
-      - name: Generate draft (AI with fallback)
+      # Step 4: Generate AI healthcare content
+      - name: Generate healthcare content
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: gemini-2.5-flash
-        run: python generate.py
+        run: |
+          python generate.py
 
-      - name: Commit draft
+      # Step 5: Save generated files to GitHub
+      - name: Save generated content
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add drafts/
+
           if ! git diff --cached --quiet; then
             git commit -m "Add generated healthcare content"
-            git push
+
+            # Sync with latest main branch
+            git pull --rebase origin main
+
+            # Push generated content
+            git push origin HEAD:main
+          else
+            echo "No new content to commit."
           fi
+
+      # Step 6: Show completion message
+      - name: Workflow completed
+        run: |
+          echo "Healthcare content workflow completed."
+          echo "Check the drafts folder for generated files."
