@@ -25,7 +25,7 @@ jobs:
 
       - name: Generate healthcare content
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINIAPI }}
           GEMINI_MODEL: gemini-2.5-flash
         run: python generate.py
 
