@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
+import urllib.error
+
 TOPICS = [
  ('Appointment reminders', 'Missed appointments can disrupt clinic operations. A digital reminder workflow helps staff communicate consistently.', 'Ask us how a patient portal can support appointment communication.'),
  ('Patient registration', 'Paper-based registration can create repetitive work. Digital intake can help teams organize patient-provided information.', 'Explore simpler registration workflows for your clinic.'),
@@ -46,7 +48,11 @@ def main():
         title, post = ai_draft(title, body)
         source = 'Gemini AI-generated; human review required'
     except Exception as exc:
-        print(f'Gemini unavailable; using safe template fallback ({type(exc).__name__})')
+        if isinstance(e, urllib.error.HTTPError):
+           print(f"Gemini HTTP error: {e.code}")
+        else:
+           print(f"Gemini error: {type(e).__name__}")
+
     record = {
         'id':date, 'status':'DRAFT', 'approved':False, 'topic':title,
         'platforms':['linkedin','facebook','instagram'], 'post':post,
